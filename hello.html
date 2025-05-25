@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>hello</title>
+  <style>
+    body {
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .character {
+      position: relative;
+      text-align: center;
+    }
+
+    .face {
+      font-size: 4rem;
+    }
+
+    .hand {
+      font-size: 3rem;
+      animation: wave 1s infinite ease-in-out;
+      transform-origin: 70% 70%;
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    @keyframes wave {
+      0% { transform: rotate(0deg); }
+      20% { transform: rotate(20deg); }
+      40% { transform: rotate(-10deg); }
+      60% { transform: rotate(20deg); }
+      80% { transform: rotate(-10deg); }
+      100% { transform: rotate(0deg); }
+    }
+
+    .speech-bubble {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      padding: 10px 15px;
+      font-size: 1rem;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 10px 10px 0;
+      border-style: solid;
+      border-color: white transparent transparent transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="character">
+    <div class="speech-bubble">hi</div>
+    <div>
+      <span class="face">😐</span>
+      <span class="hand">👋</span>
+    </div>
+  </div>
+</body>
+</html>
