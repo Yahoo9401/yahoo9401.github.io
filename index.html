@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>MOUSE</title>
+  <style>
+    body {
+      background: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    #startScreen {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #gameCanvas {
+      display: none;
+      background: black;
+      margin: 0 auto;
+      display: block;
+    }
+    button {
+      font-size: 1.2rem;
+      padding: 1rem 2rem;
+      background: #00d4ff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: black;
+    }
+    button:hover {
+      background: #00aacc;
+    }
+  </style>
+</head>
+<body>
+  <div id="startScreen">
+    <h1 style="font-size: 4rem; letter-spacing: 10px;">MOUSE</h1>
+    <button id="startBtn">START</button>
+  </div>
+  <canvas id="gameCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const startScreen = document.getElementById('startScreen');
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let mouseX = 300, mouseY = 200;
+    let startTime;
+    let difficultyMultiplier = 1;
+    let gameOver = false;
+    let bossAppeared = false;
+    let boss = null;
+    let bulletInterval;
+    let bossBulletInterval;
+    let keys = {};
+    const player = { x: 300, y: 200, radius: 10 };
+    const bullets = [];
+    const bossBullets = [];
+    const playerBullets = [];
+
+    function spawnBullet() {
+      const angle = Math.random() * Math.PI * 2;
+      const baseSpeed = 2 + difficultyMultiplier;
+      const distance = 800;
+
+      bullets.push({
+        x: mouseX + Math.cos(angle) * distance,
+        y: mouseY + Math.sin(angle) * distance,
+        vx: -Math.cos(angle) * baseSpeed,
+        vy: -Math.sin(angle) * baseSpeed,
+        size: 10
+      });
+    }
+
+    function spawnBossBullets() {
+      if (!boss) return;
+
+      const bulletCount = 20;
+      const angleOffset = Math.random() * Math.PI * 2;
+
+      for (let i = 0; i < bulletCount; i++) {
+        const angle = angleOffset + (Math.PI * 2 * i) / bulletCount;
+        bossBullets.push({
+          x: boss.x,
+          y: boss.y,
+          vx: Math.cos(angle) * 3,
+          vy: Math.sin(angle) * 3,
+          size: 6
+        });
+      }
+    }
+
+    function shootPlayerBullet() {
+      playerBullets.push({
+        x: player.x,
+        y: player.y,
+        vx: 0,
+        vy: -6,
+        size: 4
+      });
+    }
+
+    function getDist(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function gameOverFunc() {
+      gameOver = true;
+      alert("Game Over! Retry?");
+      location.reload();
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      const timeElapsed = (Date.now() - startTime) / 1000;
+      difficultyMultiplier = 1 + timeElapsed / 20;
+
+      player.x = mouseX;
+      player.y = mouseY;
+
+      bullets.forEach(b => { b.x += b.vx; b.y += b.vy; });
+      bossBullets.forEach(b => { b.x += b.vx; b.y += b.vy; });
+      playerBullets.forEach(b => { b.x += b.vx; b.y += b.vy; });
+
+      bullets.forEach(b => {
+        if (getDist(player, b) < player.radius + b.size / 2) gameOverFunc();
+      });
+
+      bossBullets.forEach(b => {
+        if (getDist(player, b) < player.radius + b.size / 2) gameOverFunc();
+      });
+
+      if (timeElapsed > 30 && !bossAppeared) {
+        bossAppeared = true;
+        boss = { x: 300, y: 80, radius: 30, hp: 100 };
+        bullets.length = 0;
+        clearInterval(bulletInterval);
+        bossBulletInterval = setInterval(spawnBossBullets, 1000);
+      }
+
+      if (boss) {
+        playerBullets.forEach((b, i) => {
+          if (getDist(boss, b) < boss.radius + b.size) {
+            boss.hp -= 5;
+            playerBullets.splice(i, 1);
+          }
+        });
+
+        if (boss.hp <= 0) {
+          clearInterval(bossBulletInterval);
+          alert("Victory!! 🎉👑");
+          location.reload();
+        }
+      }
+
+      if (keys["Space"]) {
+        if (!player.lastShot || Date.now() - player.lastShot > 300) {
+          shootPlayerBullet();
+          player.lastShot = Date.now();
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "red";
+      bullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      if (boss) {
+        ctx.fillStyle = "purple";
+        ctx.beginPath();
+        ctx.arc(boss.x, boss.y, boss.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(200, 10, 200, 10);
+        ctx.fillStyle = "green";
+        ctx.fillRect(200, 10, 200 * (boss.hp / 100), 10);
+      }
+
+      ctx.fillStyle = "orange";
+      bossBullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "cyan";
+      playerBullets.forEach(b => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    startBtn.addEventListener('click', () => {
+      startScreen.style.display = 'none';
+      canvas.style.display = 'block';
+      startTime = Date.now();
+      bulletInterval = setInterval(spawnBullet, 500);
+      gameLoop();
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+    });
+
+    document.addEventListener("keydown", e => {
+      keys[e.code] = true;
+    });
+
+    document.addEventListener("keyup", e => {
+      keys[e.code] = false;
+    });
+  </script>
+</body>
+</html>
