@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SpongeBob:Attack of the Sharks</title>
+<style>
+  body {
+    background: linear-gradient(to bottom, #70c5ce, #134d7e);
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    margin-bottom: 5px;
+    text-shadow: 2px 2px #000;
+  }
+  #story {
+    background: rgba(0,0,0,0.4);
+    padding: 15px;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 0 auto 20px;
+    font-size: 1.1em;
+  }
+  #game {
+    background: rgba(0,0,0,0.5);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  #status {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-weight: bold;
+  }
+  #log {
+    height: 150px;
+    background: #00264d;
+    overflow-y: auto;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 0.9em;
+    text-align: left;
+    margin-bottom: 20px;
+  }
+  button {
+    background: #ffd54f;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.2em;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #000;
+    transition: background 0.3s ease;
+  }
+  button:hover {
+    background: #ffc107;
+  }
+  #spongebob, #shark {
+    width: 120px;
+    height: 120px;
+  }
+  #characters {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-bottom: 15px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Spong:Attack of the Shark</h1>
+<div id="story">
+  Sharks are came up to the City.<br />
+  SpongeBob Comes up to save Vikini City
+</div>
+
+<div id="game">
+  <div id="status">
+    <div>스폰지밥 HP: <span id="playerHP">100</span></div>
+    <div>상어 HP: <span id="monsterHP">80</span></div>
+  </div>
+
+  <div id="characters">
+    <img src="https://i.imgur.com/TY2yqRp.png" alt="스폰지밥" id="spongebob" />
+    <img src="https://i.imgur.com/xT6P7sH.png" alt="상어" id="shark" />
+  </div>
+
+  <div id="log"></div>
+  <button id="attackBtn">⚔️ Attack</button>
+  <button id="healBtn">🩹 Recover(+20HP)</button>
+</div>
+
+<script>
+  const playerHPSpan = document.getElementById('playerHP');
+  const monsterHPSpan = document.getElementById('monsterHP');
+  const log = document.getElementById('log');
+  const attackBtn = document.getElementById('attackBtn');
+  const healBtn = document.getElementById('healBtn');
+
+  let playerHP = 100;
+  let monsterHP = 80;
+  let gameOver = false;
+
+  function logMessage(msg) {
+    log.innerHTML += `<p>${msg}</p>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function checkEnd() {
+    if (monsterHP <= 0) {
+      logMessage("🎉 스폰지밥이 상어를 물리쳤다! 비키니시티에 평화가 찾아왔다!");
+      gameOver = true;
+      attackBtn.disabled = true;
+      healBtn.disabled = true;
+    } else if (playerHP <= 0) {
+      logMessage("💀 Spongebob felt down. Now Bikini City is in trouble");
+      gameOver = true;
+      attackBtn.disabled = true;
+      healBtn.disabled = true;
+    }
+  }
+
+  attackBtn.addEventListener('click', () => {
+    if(gameOver) return;
+
+    const playerDamage = Math.floor(Math.random() * 15) + 5;
+    monsterHP -= playerDamage;
+    monsterHP = Math.max(monsterHP, 0);
+    logMessage(`Spongebob attacked shark ${playerDamage} HP`);
+
+    if(monsterHP <= 0){
+      monsterHPSpan.textContent = monsterHP;
+      checkEnd();
+      return;
+    }
+
+    const monsterDamage = Math.floor(Math.random() * 12) + 4;
+    playerHP -= monsterDamage;
+    playerHP = Math.max(playerHP, 0);
+    logMessage(`The Shark atteacked Spong ${monsterDamage} Damage.`);
+
+    playerHPSpan.textContent = playerHP;
+    monsterHPSpan.textContent = monsterHP;
+
+    checkEnd();
+  });
+
+  healBtn.addEventListener('click', () => {
+    if(gameOver) return;
+    if(playerHP <= 0){
+      logMessage("He can't recover 'cause he is dead...");
+      return;
+    }
+
+    const healAmount = 20;
+    playerHP += healAmount;
+    if(playerHP > 100) playerHP = 100;
+    playerHPSpan.textContent = playerHP;
+    logMessage(`Spong recovered ${healAmount}HP!`);
+    
+    // 상어 공격 한번 받음 (리스크 존재)
+    const monsterDamage = Math.floor(Math.random() * 8) + 2;
+    playerHP -= monsterDamage;
+    playerHP = Math.max(playerHP, 0);
+    logMessage(`But the Shark attacked whild he is recovering. ${monsterDamage} damage!`);
+    playerHPSpan.textContent = playerHP;
+
+    checkEnd();
+  });
+</script>
+
+</body>
+</html>
